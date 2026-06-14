@@ -1,7 +1,9 @@
 from flask import Flask, render_template_string, request, redirect
 import psycopg2
 import os
-
+import csv
+import io
+from flask import Response
 app = Flask(__name__)
 
 def get_conn():
@@ -370,6 +372,11 @@ TEMPLATE = '''
             <input type="text" id="buscador" placeholder="Buscar por nombre, tipo, marca o ubicación..." onkeyup="filtrar()">
             <span class="badge" id="conteo">{{ medicamentos|length }} resultados</span>
         </div>
+        <div style="text-align:right; margin-top: 16px;">
+    <a href="/exportar">
+        <button class="btn btn-primary">📥 Exportar a Excel</button>
+    </a>
+</div>
         <table id="tabla">
             <thead>
                 <tr>
@@ -435,7 +442,20 @@ def agregar():
 def eliminar(id):
     eliminar_medicamento(id)
     return redirect('/')
-
+@app.route('/exportar')
+def exportar():
+    medicamentos = obtener_medicamentos()
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(['ID', 'Nombre', 'Tipo', 'Marca', 'Caducidad', 'Ubicación'])
+    for m in medicamentos:
+        writer.writerow(m)
+    output.seek(0)
+    return Response(
+        output.getvalue(),
+        mimetype='text/csv',
+        headers={'Content-Disposition': 'attachment; filename=inventario_farmacia.csv'}
+    )
 crear_base_datos()
 
 if __name__ == '__main__':
