@@ -339,6 +339,7 @@ def agregar():
     )
     return redirect('/')
 
+crear_base_datos()
+
 if __name__ == '__main__':
-    crear_base_datos()
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000)
